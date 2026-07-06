@@ -49,3 +49,35 @@ class LoginLogoutTests(TestCase):
         response = self.client.get(reverse("logout"))
 
         self.assertRedirects(response, reverse("login"))
+
+
+class RegisterViewTests(TestCase):
+    def test_get_register_page(self):
+        response = self.client.get(reverse("register"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_valid_registration_logs_in_and_redirects(self):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "newuser",
+                "password1": "a-very-uncommon-pass9",
+                "password2": "a-very-uncommon-pass9",
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard"))
+        self.assertTrue(User.objects.filter(username="newuser").exists())
+
+    def test_password_mismatch_does_not_create_user(self):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "newuser2",
+                "password1": "a-very-uncommon-pass9",
+                "password2": "different-pass9",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="newuser2").exists())
