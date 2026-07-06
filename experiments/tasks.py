@@ -4,8 +4,11 @@ from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
     f1_score,
+    mean_absolute_error,
     precision_score,
+    r2_score,
     recall_score,
+    root_mean_squared_error,
 )
 from sklearn.model_selection import train_test_split
 
@@ -37,13 +40,24 @@ def train_experiment(experiment_id):
         estimator.fit(X_train, y_train)
         predictions = estimator.predict(X_test)
 
-        metrics = {
-            "accuracy": accuracy_score(y_test, predictions),
-            "precision": precision_score(y_test, predictions, average="weighted", zero_division=0),
-            "recall": recall_score(y_test, predictions, average="weighted", zero_division=0),
-            "f1": f1_score(y_test, predictions, average="weighted", zero_division=0),
-            "confusion_matrix": confusion_matrix(y_test, predictions).tolist(),
-        }
+        if experiment.task_type == "classification":
+            metrics = {
+                "accuracy": accuracy_score(y_test, predictions),
+                "precision": precision_score(
+                    y_test, predictions, average="weighted", zero_division=0
+                ),
+                "recall": recall_score(
+                    y_test, predictions, average="weighted", zero_division=0
+                ),
+                "f1": f1_score(y_test, predictions, average="weighted", zero_division=0),
+                "confusion_matrix": confusion_matrix(y_test, predictions).tolist(),
+            }
+        else:
+            metrics = {
+                "rmse": root_mean_squared_error(y_test, predictions),
+                "mae": mean_absolute_error(y_test, predictions),
+                "r2": r2_score(y_test, predictions),
+            }
         experiment.metrics = metrics
 
         past_experiments = list(
