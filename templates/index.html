@@ -1,11 +1,57 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>ML Experiment Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <p>Logged in as {{ user.username }}.</p>
-    <p><a href="{% url 'logout' %}">Log out</a></p>
+    <header>
+        <h1>ML Experiment Dashboard</h1>
+        <p>Logged in as {{ user.username }}. <a href="{% url 'logout' %}">Log out</a></p>
+    </header>
+
+    <main>
+        <section id="upload-section">
+            <h2>1. Upload a dataset</h2>
+            <form id="upload-form">
+                <input type="file" id="dataset-file" accept=".csv" required>
+                <button type="submit">Upload</button>
+            </form>
+            <ul id="dataset-list"></ul>
+        </section>
+
+        <section id="experiment-section" hidden>
+            <h2>2. Configure a run</h2>
+            <form id="experiment-form">
+                <label>
+                    Target column
+                    <select id="target-column" required></select>
+                </label>
+                <label>
+                    Task type
+                    <select id="task-type" required>
+                        <option value="classification">Classification</option>
+                        <option value="regression">Regression</option>
+                    </select>
+                </label>
+                <label>
+                    Algorithm
+                    <select id="algorithm" required></select>
+                </label>
+                <button type="submit">Train</button>
+            </form>
+        </section>
+
+        <section id="results-section" hidden>
+            <h2>3. Results</h2>
+            <p id="results-status"></p>
+            <pre id="results-metrics"></pre>
+            <p id="results-commentary"></p>
+        </section>
+    </main>
+
+    <script type="module" src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

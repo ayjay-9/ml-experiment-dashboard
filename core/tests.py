@@ -81,3 +81,16 @@ class RegisterViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(username="newuser2").exists())
+
+
+class DashboardShellTests(TestCase):
+    def test_dashboard_includes_main_script(self):
+        user = User.objects.create_user(username="carol", password="testpass123")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertContains(response, "/static/js/main.js")
+        self.assertContains(response, 'id="upload-section"')
+        self.assertContains(response, 'id="experiment-section"')
+        self.assertContains(response, 'id="results-section"')
