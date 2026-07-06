@@ -1,5 +1,5 @@
 import { uploadDataset, renderDatasetList } from "./datasets.js";
-import { createExperiment, populateAlgorithmOptions } from "./experiments.js";
+import { createExperiment, pollExperiment, populateAlgorithmOptions } from "./experiments.js";
 
 let currentDataset = null;
 const uploadedDatasets = [];
@@ -14,6 +14,8 @@ const taskTypeSelect = document.getElementById("task-type");
 const algorithmSelect = document.getElementById("algorithm");
 const resultsSection = document.getElementById("results-section");
 const resultsStatus = document.getElementById("results-status");
+const resultsMetrics = document.getElementById("results-metrics");
+const resultsCommentary = document.getElementById("results-commentary");
 
 uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -54,6 +56,19 @@ experimentForm.addEventListener("submit", async (event) => {
 
     resultsSection.hidden = false;
     resultsStatus.textContent = `Status: ${experiment.status}`;
+
+    resultsMetrics.textContent = "";
+    resultsCommentary.textContent = "";
+
+    pollExperiment(experiment.id, (updated) => {
+        resultsStatus.textContent = `Status: ${updated.status}`;
+        if (updated.status === "completed") {
+            resultsMetrics.textContent = JSON.stringify(updated.metrics, null, 2);
+            resultsCommentary.textContent = updated.llm_commentary || "(no commentary)";
+        } else if (updated.status === "failed") {
+            resultsMetrics.textContent = updated.error_message;
+        }
+    });
 });
 
 populateAlgorithmOptions(algorithmSelect, taskTypeSelect.value);

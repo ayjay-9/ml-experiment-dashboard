@@ -22,3 +22,18 @@ export function populateAlgorithmOptions(selectElement, taskType) {
         selectElement.appendChild(option);
     }
 }
+
+const POLL_INTERVAL_MS = 3000;
+
+export function pollExperiment(experimentId, onUpdate) {
+    const intervalId = setInterval(async () => {
+        const experiment = await apiFetch(`/api/experiments/${experimentId}/`);
+        onUpdate(experiment);
+
+        if (experiment.status === "completed" || experiment.status === "failed") {
+            clearInterval(intervalId);
+        }
+    }, POLL_INTERVAL_MS);
+
+    return intervalId;
+}
