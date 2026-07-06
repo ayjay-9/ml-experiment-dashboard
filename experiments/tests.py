@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from .models import Dataset
+from .models import Dataset, Experiment
 
 User = get_user_model()
 
@@ -28,3 +28,24 @@ class DatasetModelTests(TestCase):
         self.assertEqual(dataset.column_names, ["a", "b", "c"])
         self.assertTrue(dataset.file.name.startswith("datasets/"))
         self.assertIsNotNone(dataset.uploaded_at)
+
+
+class ExperimentModelTests(TestCase):
+    def test_create_experiment_defaults(self):
+        user = User.objects.create_user(username="bob", password="testpass123")
+        upload = SimpleUploadedFile("iris.csv", b"a,b,c\n1,2,3\n", content_type="text/csv")
+        dataset = Dataset.objects.create(user=user, file=upload, column_names=["a", "b", "c"])
+
+        experiment = Experiment.objects.create(
+            dataset=dataset,
+            user=user,
+            target_column="c",
+            task_type="classification",
+            algorithm="random_forest_classifier",
+            hyperparameters={"n_estimators": 100},
+        )
+
+        self.assertEqual(experiment.status, "pending")
+        self.assertEqual(experiment.metrics, {})
+        self.assertEqual(experiment.llm_commentary, "")
+        self.assertIsNone(experiment.completed_at)
