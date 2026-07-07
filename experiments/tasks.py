@@ -27,7 +27,7 @@ def train_experiment(experiment_id):
 
     try:
         df = pd.read_csv(experiment.dataset.file.path)
-        X = df.drop(columns=[experiment.target_column])
+        X = pd.get_dummies(df.drop(columns=[experiment.target_column]))
         y = df[experiment.target_column]
 
         X_train, X_test, y_train, y_test = train_test_split(

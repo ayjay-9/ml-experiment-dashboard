@@ -78,6 +78,40 @@ class TrainExperimentRegressionTests(TestCase):
         self.assertIn("r2", experiment.metrics)
 
 
+def make_categorical_feature_csv():
+    brands = ["HP", "Dell", "Lenovo"]
+    rows = ["brand,ram_gb,label"]
+    for i in range(30):
+        rows.append(f"{brands[i % 3]},{8 + (i % 3) * 8},{i % 2}")
+    return "\n".join(rows).encode("utf-8")
+
+
+class TrainExperimentCategoricalFeaturesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="alice", password="testpass123")
+        self.dataset = Dataset.objects.create(
+            user=self.user,
+            file=SimpleUploadedFile("data.csv", make_categorical_feature_csv()),
+            column_names=["brand", "ram_gb", "label"],
+        )
+
+    def test_non_numeric_feature_column_is_encoded_not_rejected(self):
+        experiment = Experiment.objects.create(
+            dataset=self.dataset,
+            user=self.user,
+            target_column="label",
+            task_type="classification",
+            algorithm="random_forest_classifier",
+            hyperparameters={"n_estimators": 10},
+        )
+
+        train_experiment(experiment.id)
+
+        experiment.refresh_from_db()
+        self.assertEqual(experiment.status, "completed")
+        self.assertIn("accuracy", experiment.metrics)
+
+
 class TrainExperimentFailureTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="alice", password="testpass123")
